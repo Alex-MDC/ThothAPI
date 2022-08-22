@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
      //TODO revise key format
      //folder S3 path must be set statically
      // variable component is the name of the specific job object to access
-     // String key = "test-audios/transcripts/medical/"+ jobName+".json";
      String key = transcribeConstants.JOBS_OUTPUT_FOLDER+"medical/"+ jobName+".json";
 
      // Create a GetObjectRequest to be pre-signed

@@ -31,6 +31,8 @@ import com.ecaresoft.thoth.demo.constants.transcribeConstants;
 import com.ecaresoft.thoth.demo.services.Uploader;
 import com.ecaresoft.thoth.demo.services.UrlAccess;
 
+//TODO Handle exceptions / non nominal cases
+
 @RestController
 public class TrancribeController {
   
