@@ -29,8 +29,6 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
      // This is usually done at application startup, because creating a presigner can be expensive.
      S3Presigner presigner = S3Presigner.create();
 
-
-     //TODO revise key format
      //folder S3 path must be set statically
      // variable component is the name of the specific job object to access
      String key = transcribeConstants.JOBS_OUTPUT_FOLDER+"medical/"+ jobName+".json";

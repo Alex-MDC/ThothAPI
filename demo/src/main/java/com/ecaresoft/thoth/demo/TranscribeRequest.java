@@ -31,21 +31,24 @@ public class TranscribeRequest {
 	private String transcriptedAudio;
 
 	//default constructor with default values
+	//!!!changing the empty values may affect the exception handler as it checks for empty fields!!!
 	//do NOT actually use values as is to run jobs, it will FAIL
 	public TranscribeRequest(){
 		Map<String, String> mapRequest = new HashMap<>();
-        mapRequest.put("outPutbucket", "def-bucket");
-		mapRequest.put("jobName", "def-job");
-		mapRequest.put("mediaFileUri", "def-mediaURI");
-		mapRequest.put("outputKey", "def-outKey");
-		mapRequest.put("region", "us-east-1");
+        mapRequest.put("outPutbucket", "");
+		mapRequest.put("jobName", "");
+		mapRequest.put("mediaFileUri", "");
+		mapRequest.put("outputKey", "");
+		mapRequest.put("region", "");
 		this.jsonDATA = new JSONObject(mapRequest);
-		this.outputBucket = "def bucket";
-		this.jobName = "def jobname";
-		this.mediaFileUri = "def mediaURI";
-		this.outputKey = "def - key";
-		this.region = "us-east-1";
-		this.regiontype = Region.of(this.region);
+		this.outputBucket = "";
+		this.jobName = "";
+		this.mediaFileUri = "";
+		this.outputKey = "";
+		this.region = "";
+		if(!this.region.isEmpty()){
+			this.regiontype = Region.of(this.region);
+		}
 	}
 
 	//constructs all the contents for a medical transcribe request
@@ -58,7 +61,9 @@ public class TranscribeRequest {
 		this.outputKey = transcribeConstants.JOBS_OUTPUT_FOLDER;
 		this.doctorID ="";
         this.region = region;
-		this.regiontype = Region.of(region);
+		if(!this.region.isEmpty()){
+			this.regiontype = Region.of(this.region);
+		}
 		this.mediaReq = Media.builder().mediaFileUri(this.mediaFileUri).build();
 		this.medicalRequest = StartMedicalTranscriptionJobRequest.builder()
 		.medicalTranscriptionJobName(this.jobName)

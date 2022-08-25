@@ -1,9 +1,11 @@
 package com.ecaresoft.thoth.demo.controllers;
 
-import java.util.concurrent.atomic.AtomicLong;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,41 +13,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecaresoft.thoth.demo.TranscribeRequest;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.json.JSONObject;
-
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.transcribe.TranscribeClient;
 import software.amazon.awssdk.services.transcribe.model.GetMedicalTranscriptionJobRequest;
 import software.amazon.awssdk.services.transcribe.model.GetMedicalTranscriptionJobResponse;
-import software.amazon.awssdk.services.transcribe.model.Media;
-import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobRequest;
 import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobResponse;
-
 import com.ecaresoft.thoth.demo.constants.transcribeConstants;
 import com.ecaresoft.thoth.demo.services.Uploader;
 import com.ecaresoft.thoth.demo.services.UrlAccess;
-
-//TODO Handle exceptions / non nominal cases
+import com.ecaresoft.thoth.demo.exceptions.JobNameNotFoundException;
+import com.ecaresoft.thoth.demo.exceptions.MediaUriNotFoundException;
+import com.ecaresoft.thoth.demo.exceptions.OutputBucketNotfoundException;
+import com.ecaresoft.thoth.demo.exceptions.RegionNotFoundException;
 
 @RestController
 public class TrancribeController {
   
     //this functions as a context variable
     private  TranscribeRequest contextTranscribeRequest;
-
-    //todo fix behaviour/params
-	@GetMapping("/greeting")
-	public TranscribeRequest transcribeRequest(@RequestParam(value = "jobName", defaultValue = "defaultJob") String name) {
-		return new TranscribeRequest();
-
-	}
-
+    
     @GetMapping("/")
 	public String index() {
 		return "Welcome to Thoth";
@@ -54,13 +41,20 @@ public class TrancribeController {
     //build the transcribe request 
     //returns a JSON with the critital data needed to recreate the contents of the transcribe request
     @PostMapping("/transcribereq")
-    public JSONObject buildTranscribeRequest(@RequestBody TranscribeRequest transcribeRequest){
+    public JSONObject buildTranscribeRequest(@RequestBody TranscribeRequest transcribeRequest) {
         //update the context var
         this.contextTranscribeRequest = new TranscribeRequest( 
         transcribeRequest.getOutputBucket(),
         transcribeRequest.getJobName(),
         transcribeRequest.getMediaFileUri(),
         transcribeRequest.getRegion());
+        
+        //Paramater handling: make sure none of these are empty as they are mandatory for Amazon Transcribe Medical to function
+        if (this.contextTranscribeRequest.getOutputBucket().isEmpty()) throw new OutputBucketNotfoundException();
+        if (this.contextTranscribeRequest.getJobName().isEmpty()) throw new JobNameNotFoundException();
+        if (this.contextTranscribeRequest.getMediaFileUri().isEmpty()) throw new MediaUriNotFoundException();
+        if (this.contextTranscribeRequest.getRegion().isEmpty()) throw new RegionNotFoundException();
+       
         //handle doctor ID
         //update the context if the doctor id field exists and is not empty
         if(transcribeRequest.getDoctorID()!= null){
@@ -68,7 +62,6 @@ public class TrancribeController {
             //update JSON data
             this.contextTranscribeRequest.setJsonDATA(this.contextTranscribeRequest.getJsonDATA().put("doctorID", this.contextTranscribeRequest.getDoctorID()));
         }
-        //System.out.println("This context mreq " + this.contextTranscribeRequest.getMedicalRequest() + "\n");
 
         return this.contextTranscribeRequest.getJsonDATA();
     }
