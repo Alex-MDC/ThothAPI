@@ -4,12 +4,9 @@ package com.ecaresoft.thoth.demo.controllers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ecaresoft.thoth.demo.TranscribeRequest;
@@ -19,7 +16,6 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.transcribe.model.GetMedicalTranscriptionJobRequest;
 import software.amazon.awssdk.services.transcribe.model.GetMedicalTranscriptionJobResponse;
 import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobResponse;
-import com.ecaresoft.thoth.demo.constants.transcribeConstants;
 import com.ecaresoft.thoth.demo.services.Uploader;
 import com.ecaresoft.thoth.demo.services.UrlAccess;
 import com.ecaresoft.thoth.demo.exceptions.JobNameNotFoundException;

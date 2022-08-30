@@ -10,7 +10,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.transcribe.TranscribeClient;
 import software.amazon.awssdk.services.transcribe.model.Media;
 import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobRequest;
-import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobResponse;
 import com.ecaresoft.thoth.demo.constants.transcribeConstants;
 
 
