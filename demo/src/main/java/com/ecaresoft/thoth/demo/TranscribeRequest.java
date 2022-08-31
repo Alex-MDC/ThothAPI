@@ -5,7 +5,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.transcribe.TranscribeClient;
 import software.amazon.awssdk.services.transcribe.model.Media;
@@ -28,6 +29,10 @@ public class TranscribeRequest {
 	private TranscribeClient transcribeClient;
 	private String jobStatus;
 	private String transcriptedAudio;
+	//credentials
+	private AwsBasicCredentials awsCreds;
+	private String accessKeyId;
+	private String secretAccessKey;
 
 	//default constructor with default values
 	//!!!changing the empty values may affect the exception handler as it checks for empty fields!!!
@@ -39,11 +44,17 @@ public class TranscribeRequest {
 		mapRequest.put("mediaFileUri", "");
 		mapRequest.put("outputKey", "");
 		mapRequest.put("region", "");
+		mapRequest.put("accesKeyId","");
+		mapRequest.put("secretAccessKey","");
 		this.jsonDATA = new JSONObject(mapRequest);
 		this.outputBucket = "";
 		this.jobName = "";
 		this.mediaFileUri = "";
 		this.outputKey = "";
+		this.accessKeyId ="";
+		this.secretAccessKey="";
+		//note: leaving blank the parameters results in an error, default non-working values are provided instead for init
+		this.awsCreds = AwsBasicCredentials.create("accessKeyId", "secretAccessKey");
 		this.region = "";
 		if(!this.region.isEmpty()){
 			this.regiontype = Region.of(this.region);
@@ -52,13 +63,17 @@ public class TranscribeRequest {
 
 	//constructs all the contents for a medical transcribe request
 	//public TranscribeRequest(String outputBucket, String jobName, String mediaFileUri, String outputKey, String region)
-	public TranscribeRequest(String outputBucket, String jobName, String mediaFileUri, String region)
+	public TranscribeRequest(String outputBucket, String jobName, String mediaFileUri, String region, String accessKeyId, String secretAccessKey)
 	{
         this.outputBucket = outputBucket;
         this.jobName = jobName;
         this.mediaFileUri = mediaFileUri;
 		this.outputKey = transcribeConstants.JOBS_OUTPUT_FOLDER;
 		this.doctorID ="";
+		//credentials
+		this.accessKeyId = accessKeyId;
+		this.secretAccessKey = secretAccessKey;
+		this.awsCreds = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
         this.region = region;
 		if(!this.region.isEmpty()){
 			this.regiontype = Region.of(this.region);
@@ -80,6 +95,7 @@ public class TranscribeRequest {
 		mapRequest.put("outputKey", transcribeConstants.JOBS_OUTPUT_FOLDER);
 		mapRequest.put("region", region);
 		mapRequest.put("doctorID", this.doctorID);
+		mapRequest.put("awsKeys",this.awsCreds.toString());
 		this.jsonDATA = new JSONObject(mapRequest);
 	}
 
@@ -88,14 +104,14 @@ public class TranscribeRequest {
 	public TranscribeClient startClient(Region region){
 		return TranscribeClient.builder()
 		.region(region)
-		.credentialsProvider(ProfileCredentialsProvider.create())
+		.credentialsProvider(StaticCredentialsProvider.create(this.awsCreds))
 		.build();
 	}
 	//builder with same region as this's 
 	public TranscribeClient startClient(){
 		return TranscribeClient.builder()
 		.region(this.regiontype)
-		.credentialsProvider(ProfileCredentialsProvider.create())
+		.credentialsProvider(StaticCredentialsProvider.create(this.awsCreds))
 		.build();
 	}
 
@@ -184,7 +200,7 @@ public class TranscribeRequest {
 	public void startTranscribeClient(){
 		this.transcribeClient =TranscribeClient.builder()
 		.region(this.regiontype)
-		.credentialsProvider(ProfileCredentialsProvider.create())
+		.credentialsProvider(StaticCredentialsProvider.create(this.awsCreds))
 		.build();
 	}
 
@@ -210,6 +226,30 @@ public class TranscribeRequest {
 
 	public void setDoctorID(String doctorID) {
 		this.doctorID = doctorID;
+	}
+	
+	public AwsBasicCredentials getAwsCreds() {
+		return awsCreds;
+	}
+
+	public void setAwsCreds(AwsBasicCredentials awsCreds) {
+		this.awsCreds = awsCreds;
+	}
+
+	public String getAccessKeyId() {
+		return accessKeyId;
+	}
+
+	public void setAccessKeyId(String accessKeyID) {
+		this.accessKeyId = accessKeyID;
+	}
+
+	public String getSecretAccessKey() {
+		return secretAccessKey;
+	}
+
+	public void setSecretAccessKey(String secretAccessKey) {
+		this.secretAccessKey = secretAccessKey;
 	}
 	
 

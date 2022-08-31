@@ -18,10 +18,12 @@ import software.amazon.awssdk.services.transcribe.model.GetMedicalTranscriptionJ
 import software.amazon.awssdk.services.transcribe.model.StartMedicalTranscriptionJobResponse;
 import com.ecaresoft.thoth.demo.services.Uploader;
 import com.ecaresoft.thoth.demo.services.UrlAccess;
+import com.ecaresoft.thoth.demo.exceptions.AccessKeyIdNotFoundException;
 import com.ecaresoft.thoth.demo.exceptions.JobNameNotFoundException;
 import com.ecaresoft.thoth.demo.exceptions.MediaUriNotFoundException;
 import com.ecaresoft.thoth.demo.exceptions.OutputBucketNotfoundException;
 import com.ecaresoft.thoth.demo.exceptions.RegionNotFoundException;
+import com.ecaresoft.thoth.demo.exceptions.SecretAccessKeyNotFoundException;
 
 @RestController
 public class TrancribeController {
@@ -38,18 +40,32 @@ public class TrancribeController {
     //returns a JSON with the critital data needed to recreate the contents of the transcribe request
     @PostMapping("/transcribereq")
     public JSONObject buildTranscribeRequest(@RequestBody TranscribeRequest transcribeRequest) {
+        
+        //Paramater handling: make sure none of these are empty as they are mandatory for Amazon Transcribe Medical to function
+        if (transcribeRequest.getOutputBucket().isEmpty()) throw new OutputBucketNotfoundException();
+        if (transcribeRequest.getJobName().isEmpty()) throw new JobNameNotFoundException();
+        if (transcribeRequest.getMediaFileUri().isEmpty()) throw new MediaUriNotFoundException();
+        if (transcribeRequest.getRegion().isEmpty()) throw new RegionNotFoundException();
+        if (transcribeRequest.getAccessKeyId().isEmpty()) throw new AccessKeyIdNotFoundException();
+        if (transcribeRequest.getSecretAccessKey().isEmpty()) throw new SecretAccessKeyNotFoundException();
+        
         //update the context var
         this.contextTranscribeRequest = new TranscribeRequest( 
         transcribeRequest.getOutputBucket(),
         transcribeRequest.getJobName(),
         transcribeRequest.getMediaFileUri(),
-        transcribeRequest.getRegion());
+        transcribeRequest.getRegion(),
+        transcribeRequest.getAccessKeyId(),
+        transcribeRequest.getSecretAccessKey());
         
+        //Added reddundacy check for extra safety
         //Paramater handling: make sure none of these are empty as they are mandatory for Amazon Transcribe Medical to function
         if (this.contextTranscribeRequest.getOutputBucket().isEmpty()) throw new OutputBucketNotfoundException();
         if (this.contextTranscribeRequest.getJobName().isEmpty()) throw new JobNameNotFoundException();
         if (this.contextTranscribeRequest.getMediaFileUri().isEmpty()) throw new MediaUriNotFoundException();
         if (this.contextTranscribeRequest.getRegion().isEmpty()) throw new RegionNotFoundException();
+        if (this.contextTranscribeRequest.getAccessKeyId().isEmpty()) throw new AccessKeyIdNotFoundException();
+        if (this.contextTranscribeRequest.getSecretAccessKey().isEmpty()) throw new SecretAccessKeyNotFoundException();
        
         //handle doctor ID
         //update the context if the doctor id field exists and is not empty
@@ -99,7 +115,7 @@ public class TrancribeController {
     public String getTranscription() throws IOException{
         //generate a time-limited URL to download JSON job result
         PresignedGetObjectRequest presignedGetObjectRequest = 
-            UrlAccess.shareAaccess(this.contextTranscribeRequest.getOutputBucket(), this.contextTranscribeRequest.getJobName());
+            UrlAccess.shareAaccess(this.contextTranscribeRequest.getOutputBucket(), this.contextTranscribeRequest.getJobName(),this.contextTranscribeRequest.getAwsCreds(),this.contextTranscribeRequest.getRegiontype());
         JSONObject jobContent = UrlAccess.downloadDataAsJSON(presignedGetObjectRequest);
         String transcriptedAudio = jobContent.getJSONObject("results").getJSONArray("transcripts").getJSONObject(0).toString();
         Logger logger = Logger.getLogger(
@@ -116,8 +132,9 @@ public class TrancribeController {
             this.contextTranscribeRequest.getRegiontype(),
             this.contextTranscribeRequest.getDoctorID(),
             this.contextTranscribeRequest.getOutputBucket(),
-             this.contextTranscribeRequest.getJobName(), 
-             this.contextTranscribeRequest.getTranscriptedAudio());
+            this.contextTranscribeRequest.getJobName(), 
+            this.contextTranscribeRequest.getTranscriptedAudio(),
+            this.contextTranscribeRequest.getAwsCreds());
         return "Transcript has been uploaded";
     }
 

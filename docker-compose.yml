@@ -1,0 +1,15 @@
+version: '3'
+services:
+  thoth:
+    image: "thoth:${DOCKER_TAG:-latest}"
+    build:
+      context: ./
+    ports:
+      - "8080:8080"
+    environment:
+      - OUTPUT_PATH=./tmp/
+    
+#    network_mode: host
+
+
+
