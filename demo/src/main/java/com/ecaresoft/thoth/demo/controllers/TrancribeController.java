@@ -115,7 +115,7 @@ public class TrancribeController {
     public String getTranscription() throws IOException{
         //generate a time-limited URL to download JSON job result
         PresignedGetObjectRequest presignedGetObjectRequest = 
-            UrlAccess.shareAaccess(this.contextTranscribeRequest.getOutputBucket(), this.contextTranscribeRequest.getJobName());
+            UrlAccess.shareAaccess(this.contextTranscribeRequest.getOutputBucket(), this.contextTranscribeRequest.getJobName(),this.contextTranscribeRequest.getAwsCreds(),this.contextTranscribeRequest.getRegiontype());
         JSONObject jobContent = UrlAccess.downloadDataAsJSON(presignedGetObjectRequest);
         String transcriptedAudio = jobContent.getJSONObject("results").getJSONArray("transcripts").getJSONObject(0).toString();
         Logger logger = Logger.getLogger(

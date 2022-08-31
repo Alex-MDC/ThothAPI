@@ -12,7 +12,10 @@ import org.json.JSONObject;
 import com.amazonaws.util.IOUtils;
 import com.ecaresoft.thoth.demo.constants.transcribeConstants;
 
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -24,10 +27,12 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
         throw new IllegalStateException("Utility class");
       }
     
-    public static PresignedGetObjectRequest shareAaccess(String bucket, String jobName) {
-    // Create an S3Presigner using the default region and credentials.
-     // This is usually done at application startup, because creating a presigner can be expensive.
-     S3Presigner presigner = S3Presigner.create();
+    public static PresignedGetObjectRequest shareAaccess(String bucket, String jobName, AwsBasicCredentials awsCreds, Region region) {
+    // Create an S3Presigner using the user set region and credentials.
+     S3Presigner presigner = S3Presigner.builder()
+     .region(region)
+     .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
+     .build();
 
      //folder S3 path must be set statically
      // variable component is the name of the specific job object to access
