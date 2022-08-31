@@ -2,7 +2,8 @@ package com.ecaresoft.thoth.demo.services;
 
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 
@@ -14,20 +15,21 @@ public class Uploader {
 
     //upload transcript as txt
     //with no doctor ID
-    public static void uploadTranscript(Region region, String bucketName, String objectKey, String transcription){
-        uploadTranscript( region, "",  bucketName,  objectKey,  transcription);
+    public static void uploadTranscript(Region region, String bucketName, String objectKey, String transcription, AwsBasicCredentials awsCreds ){
+        uploadTranscript( region, "",  bucketName,  objectKey,  transcription, awsCreds);
     }
 
     //version with doctor ID
-    public static void uploadTranscript(Region region,String doctorID, String bucketName, String objectKey, String transcription){
+    public static void uploadTranscript(Region region,String doctorID, String bucketName, String objectKey, String transcription,AwsBasicCredentials awsCreds){
         if(!doctorID.isEmpty()){
             doctorID = doctorID+"/";
         }
         //start client
         S3Client client = S3Client.builder()
         .region(region)
-        .credentialsProvider(ProfileCredentialsProvider.create())
+        .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
         .build();
+
         //prepare and package content to upload
         //requestBody contains the transcript
         RequestBody requestBody = RequestBody.fromString(transcription);
